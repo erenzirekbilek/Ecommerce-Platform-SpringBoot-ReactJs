@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light !important; /* Tarayıcıya zorla aydınlık modu dayatır */
+}
+
+html, body {
+  background-color: white !important;
+  color: black !important;
+  margin: 0;
+  padding: 0;
+}
