@@ -32,9 +32,10 @@ interface AuthState {
 
 const loadInitialState = (): AuthState => {
   const token = localStorage.getItem("accessToken");
+  const savedUser = localStorage.getItem("user"); // Kullanıcıyı da al
 
   return {
-    user: null,
+    user: savedUser ? JSON.parse(savedUser) : null,
     accessToken: token,
     isAuthenticated: !!token,
     loading: false,
@@ -130,6 +131,9 @@ const authSlice = createSlice({
         state.accessToken = action.payload.accessToken;
         state.isAuthenticated = true;
         state.loading = false;
+        // VERİLERİ BURADA KAYDEDİYORUZ:
+        localStorage.setItem("accessToken", action.payload.accessToken);
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -172,6 +176,10 @@ const authSlice = createSlice({
         state.accessToken = null;
         state.isAuthenticated = false;
         state.error = null;
+
+        // HAFIZAYI TEMİZLİYORUZ:
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
       })
       .addCase(logout.rejected, (state) => {
         state.user = null;
