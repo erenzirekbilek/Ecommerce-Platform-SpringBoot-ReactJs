@@ -1,70 +1,109 @@
-🛒 Ecommerce-Platform-SpringBoot-ReactJs
-========================================
+🛒 TechHub - Scalable Ecommerce Ecosystem
+=========================================
 
-Bu proje; Java Spring Boot (Backend) ve React/TypeScript (Frontend) kullanılarak geliştirilmiş, yüksek performanslı ve ölçeklenebilir bir e-ticaret platformudur. Cache mekanizması için Redis, veritabanı olarak PostgreSQL ve konteynerlaştırma için Docker kullanılmıştır.
+TechHub, yüksek trafikli senaryolar düşünülerek tasarlanmış; Java Spring Boot (Backend) ve React/TypeScript (Frontend) mimarisi üzerine kurulu modern bir e-ticaret platformudur. Performans optimizasyonu için **Redis**, veri bütünlüğü için **PostgreSQL** ve izolasyon için **Docker** kullanır.
 
-🛠 Kullanılan Teknolojiler
---------------------------
+🛠️ Teknolojik Donanım (Tech Stack)
+-----------------------------------
 
-### Backend
+### **Backend (Microservice-Ready Monolith)**
 
-*   **Java & Spring Boot:** Uygulama iskeleti ve iş mantığı.
+*   **Java 17 & Spring Boot:** Güçlü tip güvenliği ve Spring Security ile güvenli iş mantığı.
     
-*   **PostgreSQL:** İlişkisel veritabanı yönetimi.
+*   **PostgreSQL:** Kompleks ilişkisel veriler için optimize edilmiş veritabanı.
     
-*   **Redis:** Performans artırımı ve önbellekleme (Caching).
+*   **Redis Caching:** Ürün listeleme ve sepet işlemleri gibi sık kullanılan verilerde düşük gecikme süresi.
     
-*   **Docker:** Uygulamanın ve servislerin izole şekilde çalıştırılması.
+*   **Hibernate & JPA:** Veritabanı yönetiminde ORM kolaylığı.
     
-*   **Auth Token (JWT):** Güvenli kimlik doğrulama ve yetkilendirme.
-    
-*   **Postman:** API testleri ve dökümantasyonu.
+*   **Docker & Docker Compose:** Ortam bağımsız (portable) çalışma imkanı.
     
 
-### Frontend
+### **Frontend (Modern UI/UX)**
 
-*   **React JS & TypeScript:** Dinamik ve tip güvenli arayüz geliştirme.
+*   **React & TypeScript:** Hatasız kodlama ve modüler UI bileşenleri.
     
-*   **React Redux:** Merkezi durum yönetimi (State Management).
+*   **Redux Toolkit:** Uygulama genelinde tutarlı durum yönetimi (State Management).
     
-*   **CSS/Sass/Tailwind:** (Kullandığın kütüphaneye göre burayı güncelleyebilirsin).
+*   **Tailwind CSS:** Modern, responsive ve hızlı stil yönetimi.
+    
+*   **Axios:** Interceptor yapısı ile merkezi API yönetimi.
     
 
-🚀 Kurulum ve Çalıştırma
-------------------------
+🏗️ Sistem Mimarisi ve Akış
+---------------------------
+
+Proje, katmanlı bir mimari (Layered Architecture) üzerine inşa edilmiştir.
+
+1.  **Güvenlik:** Kullanıcı girişi sonrası **JWT** üretilir.
+    
+2.  **Caching:** Ürün detayları ilk istekten sonra **Redis**'e yazılır, sonraki isteklerde veritabanı yükü azaltılır.
+    
+3.  **Konteynerlaştırma:** Veritabanı ve Redis, docker-compose.yml üzerinden tek komutla ayağa kalkar.
+    
+
+🚀 Hızlı Başlangıç
+------------------
 
 ### 1\. Gereksinimler
 
-*   JDK 17 veya üzeri
+*   JDK 17+
     
-*   Node.js & npm
+*   Node.js (v16+)
     
-*   Docker Desktop (PostgreSQL ve Redis için önerilir)
-    
-
-2\. Backend'i Başlatmacd backend-klasorun
-
-\# Docker üzerinden veritabanı ve Redis'i ayağa kaldırın
-
-docker-compose up -d
-
-\# Uygulamayı çalıştırın
-
-./mvnw spring-boot:run
-
-### 3\. Frontend'i Başlatma
-
-cd frontend-klasorunnpm installnpm start📂 Proje Yapısı
-
-*   Backend/: Spring Boot projesi ve API yapılandırmaları.
-    
-*   Frontend/: React & TypeScript arayüz kodları.
-    
-*   Docker/: Veritabanı ve Redis konfigürasyon dosyaları.
-    
-*   Postman/: API test koleksiyonları.
+*   Docker Desktop
     
 
-🔐 Güvenlik (Auth)
+### 2\. Altyapıyı Hazırlama (Docker)
 
-Projede **JWT (JSON Web Token)** tabanlı kimlik doğrulama kullanılmaktadır. Kullanıcı giriş yaptığında bir token alır ve sonraki isteklerde bu token'ı Authorization: Bearer başlığıyla gönderir.
+Proje kök dizininde şu komutu çalıştırarak PostgreSQL ve Redis'i başlatın:
+
+Bash
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   docker-compose up -d   `
+
+### 3\. Backend Servisini Çalıştırma
+
+Bash
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   cd backend  ./mvnw spring-boot:run   `
+
+_API servisi varsayılan olarak http://localhost:8080 üzerinde çalışır._
+
+### 4\. Frontend Arayüzünü Başlatma
+
+Bash
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   cd frontend  npm install  npm start   `
+
+_Arayüz http://localhost:5173 adresinde açılacaktır._
+
+🔐 Güvenlik ve Kimlik Doğrulama
+-------------------------------
+
+Uygulama, **Stateless JWT** mekanizmasını kullanır.
+
+*   **Üyelik:** Kullanıcı kayıt olduğunda şifresi BCrypt ile hash'lenerek saklanır.
+    
+*   **Yetkilendirme:** Bazı endpoint'ler (Örn: /admin/\*\*) sadece belirli rollere sahip kullanıcılara açıktır.
+    
+*   **Header:** İstekler Authorization: Bearer formatında gönderilmelidir.
+    
+
+📂 Proje Klasör Yapısı
+----------------------
+
+Plaintext
+
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   TechHub/  ├── backend/            # Spring Boot Kaynak Kodları  │   ├── src/main/java/  # Controller, Service, Repository Katmanları  │   └── src/resources/  # application.yml ve SQL scriptleri  ├── frontend/           # React & TypeScript Uygulaması  │   ├── src/components/ # Tekrar kullanılabilir UI bileşenleri  │   └── src/store/      # Redux Slice ve Store tanımları  ├── docker/             # Docker config dosyaları  └── postman/            # API Test Collection dosyaları   `
+
+📈 Gelecek Geliştirmeler (Roadmap)
+----------------------------------
+
+*   \[ \] **Elasticsearch:** Ürün aramalarında ultra hızlı sonuçlar.
+    
+*   \[ \] **RabbitMQ:** Sipariş onay e-postaları için asenkron kuyruk yapısı.
+    
+*   \[ \] **Payment Gateway:** Iyzico veya Stripe entegrasyonu.
+    
+*   \[ \] **K8s:** Kubernetes ile orkestrasyon desteği.

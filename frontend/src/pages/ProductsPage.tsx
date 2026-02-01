@@ -69,14 +69,21 @@ export default function ProductsPage() {
 
   // ===== STATE DEĞİŞİNCE URL'Yİ GÜNCELLE =====
   useEffect(() => {
-    setSearchParams({
-      page: String(currentPage),
-      sort: sortBy,
-      q: searchQuery,
-      name: categoryName || '',
-      subCategory: selectedSubCategory || '',
-    });
-  }, [currentPage, sortBy, searchQuery, selectedSubCategory]);
+  setSearchParams({
+    page: String(currentPage),
+    sort: sortBy,
+    q: searchQuery,
+    name: categoryName || '',
+    subCategory: selectedSubCategory || '',
+  });
+}, [
+  currentPage,
+  sortBy,
+  searchQuery,
+  selectedSubCategory,
+  categoryName,
+  setSearchParams,
+]);
 
   useEffect(() => {
     setCurrentPage(Number(searchParams.get('page')) || 1);

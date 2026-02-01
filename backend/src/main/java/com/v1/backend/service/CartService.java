@@ -33,7 +33,6 @@ public class CartService {
     private final UserRepository userRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // ===== REDIS CONSTANTS =====
     private static final String CART_CACHE_PREFIX = "cart:";
     private static final long CACHE_EXPIRY_MINUTES = 30;
 
@@ -58,28 +57,31 @@ public class CartService {
     }
 
     /**
-     * ✅ Sepete ürün ekle
+     * ✅ Sepete ürün ekle - FIXED VERSION
      */
     public CartDTO addToCart(Long userId, Long productId, Integer quantity) {
         log.info("➕ Sepete ürün ekleniyor - UserId: {}, ProductId: {}, Quantity: {}", userId, productId, quantity);
 
+        // 1. Cart'ı getir
         Cart cart = getOrCreateCart(userId);
+
+        // 2. Product'ı DB'den getir (MANAGED ENTITY)
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Ürün bulunamadı: " + productId));
 
+        // 3. Validasyonlar
         if (!product.isAvailable()) {
             throw new IllegalArgumentException("Bu ürün şu anda sipariş verilemez");
         }
 
         if (!product.canOrder(quantity)) {
+            Integer minQty = product.getMinOrderQuantity() != null ? product.getMinOrderQuantity() : 1;
+            Integer maxQty = product.getMaxOrderQuantity() != null ? product.getMaxOrderQuantity() : 100;
             throw new IllegalArgumentException(
-                    String.format("Miktar %d - %d arasında olmalıdır",
-                            product.getMinOrderQuantity(),
-                            product.getMaxOrderQuantity())
+                    String.format("Miktar %d - %d arasında olmalıdır", minQty, maxQty)
             );
         }
 
-        // Stok kontrolü
         if (product.getStock() == null || product.getStock() < quantity) {
             throw new IllegalArgumentException(
                     String.format("Yeterli stok yok. Mevcut stok: %d, İstenen miktar: %d",
@@ -87,20 +89,21 @@ public class CartService {
             );
         }
 
+        // 4. Sepetteki ürünü kontrol et
         CartItem existingItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
                 .orElse(null);
 
         if (existingItem != null) {
+            // Miktarı artır
             int newQuantity = existingItem.getQuantity() + quantity;
             if (!product.canOrder(newQuantity)) {
+                Integer minQty = product.getMinOrderQuantity() != null ? product.getMinOrderQuantity() : 1;
+                Integer maxQty = product.getMaxOrderQuantity() != null ? product.getMaxOrderQuantity() : 100;
                 throw new IllegalArgumentException(
-                        String.format("Toplam miktar %d - %d arasında olmalıdır",
-                                product.getMinOrderQuantity(),
-                                product.getMaxOrderQuantity())
+                        String.format("Toplam miktar %d - %d arasında olmalıdır", minQty, maxQty)
                 );
             }
 
-            // Stok kontrolü - toplam miktar için
             if (product.getStock() == null || product.getStock() < newQuantity) {
                 throw new IllegalArgumentException(
                         String.format("Yeterli stok yok. Mevcut stok: %d, İstenen toplam miktar: %d",
@@ -110,23 +113,30 @@ public class CartService {
 
             existingItem.setQuantity(newQuantity);
             existingItem.calculateSubtotal();
+            cartItemRepository.saveAndFlush(existingItem);
             log.info("✏️ Sepetteki ürün miktarı güncellendi - ProductId: {}, NewQuantity: {}", productId, newQuantity);
         } else {
+            // ⚠️ ÖNEMLI: CartItem'ı oluştur ve HEMEDİ flush et
             CartItem newItem = CartItem.builder()
                     .cart(cart)
-                    .product(product)
+                    .product(product)  // ← Managed entity
                     .quantity(quantity)
                     .unitPrice(product.getPrice())
                     .build();
+
             newItem.calculateSubtotal();
+
+            // ⚠️ FIX: saveAndFlush kullan (detachment sorununu önler)
+            cartItemRepository.saveAndFlush(newItem);
             cart.getItems().add(newItem);
             log.info("✨ Yeni ürün sepete eklendi - ProductId: {}, Quantity: {}", productId, quantity);
         }
 
+        // 5. Cart totals'ı güncelle ve kaydet
         cart.updateTotals();
-        cartRepository.save(cart);
+        cartRepository.saveAndFlush(cart);
 
-        // 🔴 Redis cache'i temizle
+        // 6. Redis cache'i temizle
         invalidateCartCache(userId);
 
         CartDTO cartDTO = convertToDTO(cart);
@@ -149,9 +159,8 @@ public class CartService {
         cartItemRepository.delete(item);
         cart.getItems().remove(item);
         cart.updateTotals();
-        cartRepository.save(cart);
+        cartRepository.saveAndFlush(cart);
 
-        // 🔴 Redis cache'i temizle
         invalidateCartCache(userId);
 
         log.info("✅ Ürün sepetten kaldırılıyor - ProductId: {}", productId);
@@ -179,14 +188,13 @@ public class CartService {
         }
 
         if (!product.canOrder(newQuantity)) {
+            Integer minQty = product.getMinOrderQuantity() != null ? product.getMinOrderQuantity() : 1;
+            Integer maxQty = product.getMaxOrderQuantity() != null ? product.getMaxOrderQuantity() : 100;
             throw new IllegalArgumentException(
-                    String.format("Miktar %d - %d arasında olmalıdır",
-                            product.getMinOrderQuantity(),
-                            product.getMaxOrderQuantity())
+                    String.format("Miktar %d - %d arasında olmalıdır", minQty, maxQty)
             );
         }
 
-        // Stok kontrolü
         if (product.getStock() == null || product.getStock() < newQuantity) {
             throw new IllegalArgumentException(
                     String.format("Yeterli stok yok. Mevcut stok: %d, İstenen miktar: %d",
@@ -197,9 +205,8 @@ public class CartService {
         item.setQuantity(newQuantity);
         item.calculateSubtotal();
         cart.updateTotals();
-        cartRepository.save(cart);
+        cartRepository.saveAndFlush(cart);
 
-        // 🔴 Redis cache'i temizle
         invalidateCartCache(userId);
 
         log.info("✅ Ürün miktarı güncellendi - ProductId: {}, NewQuantity: {}", productId, newQuantity);
@@ -217,9 +224,8 @@ public class CartService {
 
         cartItemRepository.deleteByCartId(cart.getId());
         cart.clear();
-        cartRepository.save(cart);
+        cartRepository.saveAndFlush(cart);
 
-        // 🔴 Redis cache'i temizle
         invalidateCartCache(userId);
 
         log.info("✅ Sepet temizlendi - UserId: {}", userId);
@@ -232,7 +238,6 @@ public class CartService {
     public CartDTO getCart(Long userId) {
         log.info("🛒 Sepet getiriliyor - UserId: {}", userId);
 
-        // 1️⃣ Redis'den kontrol et
         String cacheKey = CART_CACHE_PREFIX + userId;
         CartDTO cachedCart = (CartDTO) redisTemplate.opsForValue().get(cacheKey);
 
@@ -243,13 +248,11 @@ public class CartService {
 
         log.info("⚠️ Sepet Redis'de yok, Database'den alınıyor - UserId: {}", userId);
 
-        // 2️⃣ Database'den getir
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Sepet bulunamadı"));
 
         CartDTO cartDTO = convertToDTO(cart);
 
-        // 3️⃣ Redis'e cache et
         redisTemplate.opsForValue().set(
                 cacheKey,
                 cartDTO,
@@ -293,15 +296,43 @@ public class CartService {
     }
 
     /**
-     * ✅ CartItem DTO dönüşümü
+     * ✅ CartItem DTO dönüşümü - NULL SAFE
      */
     private CartItemDTO convertItemToDTO(CartItem item) {
+        if (item == null) {
+            log.warn("⚠️ CartItem null");
+            return null;
+        }
+
+        Product product = item.getProduct();
+        if (product == null) {
+            log.warn("⚠️ Product null for CartItem ID: {}", item.getId());
+            return CartItemDTO.builder()
+                    .id(item.getId())
+                    .cartId(item.getCart() != null ? item.getCart().getId() : null)
+                    .quantity(item.getQuantity())
+                    .unitPrice(item.getUnitPrice())
+                    .subtotal(item.getSubtotal())
+                    .createdAt(item.getCreatedAt())
+                    .updatedAt(item.getUpdatedAt())
+                    .build();
+        }
+
+        String productImage = null;
+        try {
+            if (product.getImages() != null && !product.getImages().isEmpty()) {
+                productImage = product.getImages().get(0);
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Product images yüklenirken hata - ProductId: {}", product.getId());
+        }
+
         return CartItemDTO.builder()
                 .id(item.getId())
-                .cartId(item.getCart().getId())
-                .productId(item.getProduct().getId())
-                .productName(item.getProduct().getName())
-                .productImage(item.getProduct().getImages().isEmpty() ? null : item.getProduct().getImages().get(0))
+                .cartId(item.getCart() != null ? item.getCart().getId() : null)
+                .productId(product.getId())
+                .productName(product.getName())
+                .productImage(productImage)
                 .quantity(item.getQuantity())
                 .unitPrice(item.getUnitPrice())
                 .subtotal(item.getSubtotal())

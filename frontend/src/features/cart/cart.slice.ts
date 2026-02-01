@@ -31,15 +31,19 @@ interface CartState {
   cart: Cart | null;
   loading: boolean;
   error: string | null;
+  isInitialized: boolean;
+  syncInProgress: boolean;
 }
 
 const initialState: CartState = {
   cart: null,
   loading: false,
   error: null,
+  isInitialized: false,
+  syncInProgress: false,
 };
 
-// ✅ Sepeti API'den çek
+// Fetch Cart
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (userId: number, { rejectWithValue }) => {
@@ -53,22 +57,20 @@ export const fetchCart = createAsyncThunk(
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'Sepet yüklenemedi');
     } catch (error: unknown) {
       let errorMessage = 'Sepet yüklenemedi';
-
       if (axios.isAxiosError(error)) {
         errorMessage = error.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       return rejectWithValue(errorMessage);
     }
   }
 );
 
-// ✅ Sepete ürün ekle
+// Add to Cart
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async (
@@ -88,23 +90,20 @@ export const addToCart = createAsyncThunk(
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'Ürün eklenemedi');
     } catch (error: unknown) {
       let errorMessage = 'Ürün eklenemedi';
-
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string } } };
-        errorMessage = axiosError.response?.data?.message || errorMessage;
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       return rejectWithValue(errorMessage);
     }
   }
 );
 
-// ✅ Sepetteki ürünü güncelle
+// Update Cart Item
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
   async (
@@ -116,30 +115,27 @@ export const updateCartItem = createAsyncThunk(
         success: boolean;
         data: Cart;
         message: string;
-      }>(`/api/v1/cart/${payload.userId}/items/${payload.cartItemId}`, {
+      }>(`/v1/cart/${payload.userId}/items/${payload.cartItemId}`, {
         quantity: payload.quantity,
       });
 
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'Güncelleme başarısız');
     } catch (error: unknown) {
       let errorMessage = 'Güncelleme başarısız';
-
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string } } };
-        errorMessage = axiosError.response?.data?.message || errorMessage;
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       return rejectWithValue(errorMessage);
     }
   }
 );
 
-// ✅ Sepetten ürün sil
+// Remove from Cart
 export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
   async (
@@ -151,54 +147,53 @@ export const removeFromCart = createAsyncThunk(
         success: boolean;
         data: Cart;
         message: string;
-      }>(`/api/v1/cart/${payload.userId}/items/${payload.cartItemId}`);
+      }>(`/v1/cart/${payload.userId}/items/${payload.cartItemId}`);
 
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'Silme başarısız');
     } catch (error: unknown) {
       let errorMessage = 'Silme başarısız';
-
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string } } };
-        errorMessage = axiosError.response?.data?.message || errorMessage;
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       return rejectWithValue(errorMessage);
     }
   }
 );
 
-// ✅ Sepeti tamamen temizle
+
+// Clear Cart
 export const clearCart = createAsyncThunk(
   'cart/clearCart',
   async (userId: number, { rejectWithValue }) => {
     try {
       const response = await api.delete<{
         success: boolean;
+        data?: Cart;
         message: string;
-      }>(`/api/v1/cart/${userId}`);
+      }>(`/v1/cart/${userId}/clear`);
 
       if (response.data.success) {
-        return null;
+        return response.data.data ?? null;
       }
-      return rejectWithValue(response.data.message);
+
+      return rejectWithValue(response.data.message || 'Sepet temizlenemedi');
     } catch (error: unknown) {
       let errorMessage = 'Sepet temizlenemedi';
-
       if (axios.isAxiosError(error)) {
         errorMessage = error.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       return rejectWithValue(errorMessage);
     }
   }
 );
+
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -209,7 +204,7 @@ const cartSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // fetchCart
+    // Fetch Cart
     builder
       .addCase(fetchCart.pending, (state) => {
         state.loading = true;
@@ -218,81 +213,77 @@ const cartSlice = createSlice({
       .addCase(fetchCart.fulfilled, (state, action: PayloadAction<Cart>) => {
         state.loading = false;
         state.cart = action.payload;
+        state.isInitialized = true;
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        state.isInitialized = true;
       });
 
-    // addToCart
+    // Add to Cart
     builder
       .addCase(addToCart.pending, (state) => {
-        state.loading = true;
+        state.syncInProgress = true;
         state.error = null;
       })
       .addCase(addToCart.fulfilled, (state, action: PayloadAction<Cart>) => {
-        state.loading = false;
+        state.syncInProgress = false;
         state.cart = action.payload;
       })
       .addCase(addToCart.rejected, (state, action) => {
-        state.loading = false;
+        state.syncInProgress = false;
         state.error = action.payload as string;
       });
 
-    // updateCartItem
+    // Update Cart Item
     builder
       .addCase(updateCartItem.pending, (state) => {
-        state.loading = true;
+        state.syncInProgress = true;
         state.error = null;
       })
-      .addCase(
-        updateCartItem.fulfilled,
-        (state, action: PayloadAction<Cart>) => {
-          state.loading = false;
-          state.cart = action.payload;
-        }
-      )
+      .addCase(updateCartItem.fulfilled, (state, action: PayloadAction<Cart>) => {
+        state.syncInProgress = false;
+        state.cart = action.payload;
+      })
       .addCase(updateCartItem.rejected, (state, action) => {
-        state.loading = false;
+        state.syncInProgress = false;
         state.error = action.payload as string;
       });
 
-    // removeFromCart
+    // Remove from Cart
     builder
       .addCase(removeFromCart.pending, (state) => {
-        state.loading = true;
+        state.syncInProgress = true;
         state.error = null;
       })
-      .addCase(
-        removeFromCart.fulfilled,
-        (state, action: PayloadAction<Cart>) => {
-          state.loading = false;
-          state.cart = action.payload;
-        }
-      )
+      .addCase(removeFromCart.fulfilled, (state, action: PayloadAction<Cart>) => {
+        state.syncInProgress = false;
+        state.cart = action.payload;
+      })
       .addCase(removeFromCart.rejected, (state, action) => {
-        state.loading = false;
+        state.syncInProgress = false;
         state.error = action.payload as string;
       });
 
-    // clearCart
+    // Clear Cart
     builder
       .addCase(clearCart.pending, (state) => {
-        state.loading = true;
+        state.syncInProgress = true;
         state.error = null;
       })
       .addCase(clearCart.fulfilled, (state) => {
-        state.loading = false;
+        state.syncInProgress = false;
         state.cart = null;
       })
       .addCase(clearCart.rejected, (state, action) => {
-        state.loading = false;
+        state.syncInProgress = false;
         state.error = action.payload as string;
       });
   },
 });
 
-// ✅ Selectors
+// Selectors
 export const selectCart = (state: RootState) => state.cart.cart;
 export const selectCartItems = (state: RootState) => state.cart.cart?.items || [];
 export const selectCartTotals = (state: RootState) => ({
@@ -301,7 +292,12 @@ export const selectCartTotals = (state: RootState) => ({
 });
 export const selectCartLoading = (state: RootState) => state.cart.loading;
 export const selectCartError = (state: RootState) => state.cart.error;
+export const selectCartSyncInProgress = (state: RootState) => state.cart.syncInProgress;
+export const selectIsCartInitialized = (state: RootState) => state.cart.isInitialized;
+export const selectIsCartEmpty = (state: RootState) =>
+  !state.cart.cart || state.cart.cart.items.length === 0;
+export const selectCartItemCount = (state: RootState) =>
+  state.cart.cart?.items.length || 0;
 
 export const { clearError } = cartSlice.actions;
-
 export default cartSlice.reducer;

@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Plus, Minus } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { fetchCart, selectCartItems, selectCartTotals } from "../../features/cart/cart.slice";
+import { fetchCart, selectCartItems, selectCartTotals, updateCartItem } from "../../features/cart/cart.slice";
 import { selectAuthUser, selectIsAuthenticated } from "../../features/auth/auth.slice";
 import ChatBot from "./ChatBot";
 import UserProfileDropdown from "./Userprofiledropdown";
 import LoginModal from "../../pages/LoginModal";
 import SignupModal from "../../pages/SignupModal";
+import { Trash2 } from "lucide-react";
+import { clearCart } from "../../features/cart/cart.slice";
 
 interface Category {
   id: number;
@@ -43,7 +46,7 @@ const DashboardLayout = ({ children }: Props) => {
   // ===== REDUX STATE =====
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const user = useAppSelector(selectAuthUser);
-  const cartItems = useAppSelector(selectCartItems); // ← Redux'dan
+  const cartItems = useAppSelector(selectCartItems);
   const { totalPrice } = useAppSelector(selectCartTotals);
 
   // ===== LOCAL STATE =====
@@ -122,6 +125,35 @@ const DashboardLayout = ({ children }: Props) => {
     navigate("/checkout");
   };
 
+  // Miktar artır
+  const handleIncreaseQuantity = (cartItemId: number, currentQuantity: number) => {
+    if (user?.id) {
+      dispatch(updateCartItem({
+        userId: user.id,
+        cartItemId,
+        quantity: currentQuantity + 1
+      }));
+    }
+  };
+
+  // Miktar azalt
+  const handleDecreaseQuantity = (cartItemId: number, currentQuantity: number) => {
+    if (currentQuantity > 1 && user?.id) {
+      dispatch(updateCartItem({
+        userId: user.id,
+        cartItemId,
+        quantity: currentQuantity - 1
+      }));
+    }
+  };
+const handleClearCart = () => {
+  if (!user?.id) return;
+
+  const ok = window.confirm("Sepeti tamamen temizlemek istiyor musunuz?");
+  if (!ok) return;
+
+  dispatch(clearCart(user.id));
+};
   // ===== CALCULATIONS =====
   const shipping = totalPrice > 500 ? 0 : 50;
   const total = totalPrice + shipping;
@@ -311,7 +343,9 @@ const DashboardLayout = ({ children }: Props) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+          
         </div>
+        
 
         <div className="flex-1 overflow-y-auto p-6">
           {cartItems.length === 0 ? (
@@ -340,7 +374,20 @@ const DashboardLayout = ({ children }: Props) => {
                   </div>
                   <div className="flex flex-col items-center gap-2">
                     <div className="flex items-center gap-1 bg-white border border-gray-200 rounded">
-                      <span className="w-6 text-center text-sm">{item.quantity}</span>
+                      <button
+                        onClick={() => handleDecreaseQuantity(item.id, item.quantity)}
+                        className="p-1 hover:bg-gray-100 transition"
+                      >
+                        <Minus size={14} className="text-gray-600" />
+                      </button>
+                      <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                      <button
+                        onClick={() => handleIncreaseQuantity(item.id, item.quantity)}
+                        className="p-1 hover:bg-gray-100 transition"
+                      >
+                        <Plus size={14} className="text-gray-600" />
+                      </button>
+                      
                     </div>
                   </div>
                 </div>
@@ -367,6 +414,15 @@ const DashboardLayout = ({ children }: Props) => {
           <button onClick={handleCheckout} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-cyan-200 transition-all active:scale-[0.98]">
             Ödemeye Geç
           </button>
+          {cartItems.length > 0 && (
+  <button
+    onClick={handleClearCart}
+    className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold transition shadow-md"
+  >
+    <Trash2 size={16} />
+    Sepeti Temizle
+  </button>
+)}
           <button onClick={() => navigate("/")} className="w-full text-gray-600 hover:text-gray-800 text-sm py-2">Alışverişe Devam Et</button>
         </div>
       </aside>

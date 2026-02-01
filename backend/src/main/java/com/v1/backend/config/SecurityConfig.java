@@ -29,16 +29,29 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 Public endpoints
+                        // 🔓 Public endpoints - Swagger/OpenAPI
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui",
+                                "/swagger-config",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // 🔓 Public Auth endpoints
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/signup"
+                        ).permitAll()
+
+                        // 🔓 Public Product/Category endpoints
                         .requestMatchers(
                                 "/uploads/**",
-                                "/api/auth/login",
-                                "/api/auth/signup",
                                 "/api/v1/categories/**",
                                 "/api/v1/products/**",
-                                "/api/v1/brands/**",
-                                "/api/v1/{parentId}/subcategories",
-                                "/api/v1/category/{categoryId}/parent-categories"
+                                "/api/v1/brands/**"
                         ).permitAll()
 
                         // 🔒 ADMIN only
