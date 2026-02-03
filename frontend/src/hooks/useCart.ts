@@ -141,10 +141,6 @@ export function useCart() {
   const clear = useCallback(async () => {
     if (!userId) return false;
 
-    if (!window.confirm('Sepeti temizlemek istediğinize emin misiniz?')) {
-      return false;
-    }
-
     try {
       await dispatch(clearCart(userId)).unwrap();
       return true;

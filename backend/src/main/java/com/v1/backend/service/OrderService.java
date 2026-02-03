@@ -35,6 +35,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderKafkaProducer kafkaProducer;
+    private final CartService cartService;
 
     @Transactional
     @CircuitBreaker(
@@ -52,10 +53,8 @@ public class OrderService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("Kullanıcı bulunamadı: " + userId));
 
-            String orderNumber = generateOrderNumber();
-
             Order order = Order.builder()
-                    .orderNumber(orderNumber)
+                    .orderNumber(generateOrderNumber())
                     .user(user)
                     .shippingAddress(request.getShippingAddress())
                     .billingAddress(request.getBillingAddress() != null ?
@@ -68,52 +67,44 @@ public class OrderService {
 
             for (CreateOrderRequest.OrderItemRequest itemRequest : request.getItems()) {
                 Product product = productRepository.findById(itemRequest.getProductId())
-                        .orElseThrow(() -> new IllegalArgumentException(
-                                "Ürün bulunamadı: " + itemRequest.getProductId()));
+                        .orElseThrow(() -> new IllegalArgumentException("Ürün bulunamadı: " + itemRequest.getProductId()));
 
-                if (!product.isAvailable()) {
-                    throw new IllegalArgumentException(
-                            String.format("Ürün şu anda sipariş verilemez: %s", product.getName()));
-                }
-
-                if (!product.canOrder(itemRequest.getQuantity())) {
-                    throw new IllegalArgumentException(
-                            String.format("Geçersiz miktar - Min: %d, Max: %d, İstenen: %d",
-                                    product.getMinOrderQuantity(),
-                                    product.getMaxOrderQuantity(),
-                                    itemRequest.getQuantity())
-                    );
-                }
-
-                if (!product.hasStock(itemRequest.getQuantity())) {
-                    throw new IllegalArgumentException(
-                            String.format("Yetersiz stok - Ürün: %s, Mevcut: %d, İstenen: %d",
-                                    product.getName(),
-                                    product.getStock(),
-                                    itemRequest.getQuantity())
-                    );
+                if (!product.isAvailable() || !product.canOrder(itemRequest.getQuantity()) || !product.hasStock(itemRequest.getQuantity())) {
+                    throw new IllegalArgumentException("Ürün uygun değil veya stok yetersiz: " + product.getName());
                 }
 
                 order.addItem(product, itemRequest.getQuantity());
             }
 
             order.calculateTotals();
-
             Order savedOrder = orderRepository.save(order);
-            log.info("Sipariş başarıyla oluşturuldu - OrderId: {}, OrderNumber: {}, TotalPrice: {}, Status: {}",
-                    savedOrder.getId(), savedOrder.getOrderNumber(), savedOrder.getTotalPrice(), savedOrder.getStatus());
 
+            // 🔥 MOCK PAYMENT: Otomatik ödeme başarısı
+            savedOrder.setPaymentStatus(Order.PaymentStatus.PAID);
+            savedOrder.setStatus(Order.OrderStatus.PAYMENT_CONFIRMED);
+            savedOrder = orderRepository.save(savedOrder);
+
+            log.info("Sipariş oluşturuldu (MOCK Ödeme Başarılı) - OrderId: {}, OrderNumber: {}",
+                    savedOrder.getId(), savedOrder.getOrderNumber());
+
+            // ✅ BAŞARI: Sipariş kaydedildi, sepeti temizle
+            try {
+                cartService.clearCart(userId);
+                log.info("Sipariş başarılı, sepet temizlendi - UserId: {}", userId);
+            } catch (Exception e) {
+                log.warn("Sepet temizlenirken hata oluştu (Sipariş süreci etkilenmedi): {}", e.getMessage());
+            }
+
+            // Event yayınla (Stock Service'e gitmesi için)
             publishOrderCreatedEvent(savedOrder);
 
             return OrderResponse.fromEntity(savedOrder);
 
         } catch (IllegalArgumentException e) {
-            log.error("Sipariş oluşturmada validasyon hatası - UserId: {} - Hata: {}",
-                    userId, e.getMessage(), e);
+            log.error("Validasyon hatası - UserId: {} - Hata: {}", userId, e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Sipariş oluşturmada beklenmeyen hata - UserId: {}",
-                    userId, e);
+            log.error("Sipariş hatası - UserId: {}", userId, e);
             throw new RuntimeException("Sipariş oluşturma işleminde hata oluştu", e);
         }
     }
@@ -146,6 +137,7 @@ public class OrderService {
                     .build();
 
             kafkaProducer.publishOrderCreated(event);
+            log.info("OrderCreatedEvent yayınlandı - OrderId: {}", order.getId());
         } catch (Exception e) {
             log.error("OrderCreatedEvent yayınlanamadı - OrderId: {}", order.getId(), e);
         }

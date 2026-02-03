@@ -46,28 +46,16 @@ export default function CartPage() {
 
   // ✅ Clear cart handler
   const handleClearCart = async () => {
-    if (!window.confirm('Sepeti tamamen temizlemek istediğinize emin misiniz?')) {
-      return;
-    }
-
     try {
       const success = await clear();
       if (success) {
         setNotification({
           type: 'success',
-          message: 'Sepet başarıyla temizlendi',
-        });
-      } else {
-        setNotification({
-          type: 'error',
-          message: 'Sepet temizlenirken hata oluştu',
+          message: 'Sepet temizlendi',
         });
       }
     } catch {
-      setNotification({
-        type: 'error',
-        message: 'Sepet temizlenirken hata oluştu',
-      });
+      setNotification({ type: 'error', message: 'Hata oluştu' });
     }
   };
 
