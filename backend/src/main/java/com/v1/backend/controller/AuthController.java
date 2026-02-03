@@ -78,4 +78,11 @@ public class AuthController {
         return ResponseEntity.ok("Welcome to ADMIN PANEL");
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        // JWT stateless olduğu için sunucuda bir şey silmeye gerek yok.
+        // Sadece istemciye "işlem başarılı" dönüyoruz.
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
 }

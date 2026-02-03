@@ -38,7 +38,7 @@ export default function ProductsPage() {
   const categoryName = searchParams.get('name');
 
   // STATE - ÜRÜNLER
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -67,30 +67,41 @@ export default function ProductsPage() {
     searchParams.get('subCategory') || ''
   );
 
+  // ===== SAYFA AÇILDIĞINDA PARAMETRELERI TEMIZLE =====
+  useEffect(() => {
+    // categoryId değiştiğinde, tüm filtreleri sıfırla
+    setCurrentPage(1);
+    setSortBy('newest');
+    setSearchQuery('');
+    setSelectedSubCategory('');
+    
+    // URL'yi de temizle
+    setSearchParams({
+      page: '1',
+      sort: 'newest',
+      q: '',
+      name: categoryName || '',
+      subCategory: '',
+    });
+  }, [categoryId]);
+
   // ===== STATE DEĞİŞİNCE URL'Yİ GÜNCELLE =====
   useEffect(() => {
-  setSearchParams({
-    page: String(currentPage),
-    sort: sortBy,
-    q: searchQuery,
-    name: categoryName || '',
-    subCategory: selectedSubCategory || '',
-  });
-}, [
-  currentPage,
-  sortBy,
-  searchQuery,
-  selectedSubCategory,
-  categoryName,
-  setSearchParams,
-]);
-
-  useEffect(() => {
-    setCurrentPage(Number(searchParams.get('page')) || 1);
-    setSortBy(searchParams.get('sort') || 'newest');
-    setSearchQuery(searchParams.get('q') || '');
-    setSelectedSubCategory(searchParams.get('subCategory') || '');
-  }, [searchParams]);
+    setSearchParams({
+      page: String(currentPage),
+      sort: sortBy,
+      q: searchQuery,
+      name: categoryName || '',
+      subCategory: selectedSubCategory || '',
+    });
+  }, [
+    currentPage,
+    sortBy,
+    searchQuery,
+    selectedSubCategory,
+    categoryName,
+    setSearchParams,
+  ]);
 
   // ===== ALT KATEGORİLERİ ÇEK =====
   useEffect(() => {
@@ -101,7 +112,7 @@ export default function ProductsPage() {
         const response = await fetch(url);
         if (response.ok) {
           const result = await response.json();
-          const subs = result.content || [];
+          const subs = result.content || result.data || [];
           setSubCategories(subs);
         }
       } catch (error) {
@@ -109,7 +120,7 @@ export default function ProductsPage() {
       }
     };
 
-    if (categoryId) fetchSubCategories();
+    if (categoryId && categoryId !== 'all') fetchSubCategories();
   }, [categoryId]);
 
   // ===== ÜRÜNLERI ÇEK =====
@@ -120,6 +131,7 @@ export default function ProductsPage() {
         setLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL;
         const pageSize = 12;
+        
         const sortByMap: { [key: string]: string } = {
           newest: 'createdAt',
           'price-low': 'price',
@@ -139,19 +151,36 @@ export default function ProductsPage() {
           params.append('keyword', searchQuery);
         }
 
-        // ALT KATEGORİ SEÇİLİYSE, ALT KATEGORİ ENDPOİNTİNİ KUL
+        // Eğer categoryId varsa ve 'all' değilse, kategori filtresi ile sorgu yap
         let url = '';
-        if (selectedSubCategory && categoryId) {
-          url = `${apiUrl}/v1/products/category/${categoryId}/parent-category?slug=${selectedSubCategory}&${params.toString()}`;
+        if (categoryId && categoryId !== 'all') {
+          // ALT KATEGORİ SEÇİLİYSE
+          if (selectedSubCategory) {
+            url = `${apiUrl}/v1/products/category/${categoryId}/parent-category?slug=${selectedSubCategory}&${params.toString()}`;
+          } else {
+            // SADECE ANA KATEGORİ
+            url = `${apiUrl}/v1/products/category/${categoryId}?${params.toString()}`;
+          }
         } else {
-          url = `${apiUrl}/v1/products/category/${categoryId}?${params.toString()}`;
+          // TÜM ÜRÜNLER - /v1/products endpoint'i
+          url = `${apiUrl}/v1/products?${params.toString()}`;
         }
 
+        console.log('Fetching from:', url);
         const response = await fetch(url);
+        
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
         const result = await response.json();
         
-        const productList = result.content || [];
+        // API response'u kontrol et
+        let productList = [];
+        if (Array.isArray(result)) {
+          productList = result;
+        } else if (result.content && Array.isArray(result.content)) {
+          productList = result.content;
+        } else if (result.data && Array.isArray(result.data)) {
+          productList = result.data;
+        }
         
         console.log('API Response:', result);
         console.log('Product List:', productList);
@@ -165,12 +194,13 @@ export default function ProductsPage() {
         });
 
         setTimeout(() => {
-          setProducts(filtered);
-          setTotalPages(result.totalPages || 0);
-          setTotalElements(result.totalElements || 0);
+          setAllProducts(filtered);
+          setTotalPages(result.totalPages || 1);
+          setTotalElements(result.totalElements || filtered.length);
           setIsTransitioning(false);
         }, 300);
 
+        // Markalar
         const uniqueBrands = Array.from(
           new Map(
             productList
@@ -182,7 +212,7 @@ export default function ProductsPage() {
         setBrands(uniqueBrands);
       } catch (error) {
         console.error('Ürünler yükleme hatası:', error);
-        setProducts([]);
+        setAllProducts([]);
         setTotalPages(0);
         setIsTransitioning(false);
       } finally {
@@ -190,12 +220,12 @@ export default function ProductsPage() {
       }
     };
     
-    if (categoryId) fetchProducts();
+    fetchProducts();
   }, [categoryId, currentPage, sortBy, searchQuery, priceRange, selectedBrands, selectedSubCategory]);
 
   // ===== FİLTRELE =====
   useEffect(() => {
-    const filtered = products
+    const filtered = allProducts
       .filter((product) => {
         const matchesSearch = product.name
           .toLowerCase()
@@ -208,7 +238,7 @@ export default function ProductsPage() {
       });
 
     setFilteredProducts(filtered);
-  }, [searchQuery, priceRange, products, selectedBrands]);
+  }, [searchQuery, priceRange, allProducts, selectedBrands]);
 
   const currentProducts = filteredProducts;
   const maxPrice = 100000;
@@ -256,7 +286,7 @@ export default function ProductsPage() {
           {/* ===== SAYFA BAŞLIĞI ===== */}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">
-              {categoryName || 'Ürünler'}
+              {categoryName || 'Tüm Ürünler'}
             </h1>
           </div>
 
@@ -548,7 +578,7 @@ export default function ProductsPage() {
                           <div className="bg-gray-100 h-72 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {product.images?.length ? (
                               <img
-                                src={`http://localhost:8082${product.images[0]}`}
+                                src={`${import.meta.env.VITE_BACKEND_URL}${product.images[0]}`}
                                 alt={product.name}
                                 onError={(e) => {
                                   console.error('Image load error:', product.images[0], e);
@@ -603,7 +633,7 @@ export default function ProductsPage() {
                           <div className="w-48 h-48 flex-shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden">
                             {product.images?.length ? (
                               <img
-                                src={`http://localhost:8082${product.images[0]}`}
+                                src={`${import.meta.env.VITE_BACKEND_URL}${product.images[0]}`}
                                 alt={product.name}
                                 onError={(e) => {
                                   console.error('Image load error:', product.images[0], e);

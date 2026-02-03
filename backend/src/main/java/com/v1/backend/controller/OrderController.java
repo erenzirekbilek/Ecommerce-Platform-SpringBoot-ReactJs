@@ -6,6 +6,7 @@ import com.v1.backend.model.Order;
 import com.v1.backend.model.User;
 import com.v1.backend.repository.UserRepository;
 import com.v1.backend.service.OrderService;
+import com.v1.backend.utils.InvoicePdfGenerator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,8 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderService orderService;
+    private final InvoicePdfGenerator invoicePdfGenerator;
+
     @Autowired
     private UserRepository userRepository;
 
@@ -371,5 +374,33 @@ public class OrderController {
         return userRepository.findByEmail(email)
                 .map(User::getId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + email));
+    }
+
+    @GetMapping("/{orderId}/invoice")
+    public ResponseEntity<byte[]> downloadInvoice(
+            @PathVariable Long orderId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            Long userId = extractUserIdFromToken(authHeader);
+            OrderResponse order = orderService.getOrderById(orderId, userId);
+            Order orderEntity = orderService.getOrderEntity(orderId);
+
+            byte[] pdfBytes = invoicePdfGenerator.generateInvoicePdf(orderEntity);
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + order.getOrderNumber() + "-Fatura.pdf\"")
+                    .header("Content-Type", "application/pdf")
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            log.error("Fatura indirme hatası - OrderId: {}", orderId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    private Long extractUserIdFromToken(String authHeader) {
+        // JWT token'dan user ID çıkar
+        // Implementation depends on your JWT library
+        return 1L; // Placeholder
     }
 }

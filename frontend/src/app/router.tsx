@@ -25,6 +25,10 @@ export const router = createBrowserRouter([
     element: <SearchPage />,
   },
   {
+  path: "/products", // Parametresiz düz yol
+  element: <ProductsPage />,
+  },
+  {
     path: "/products/:categoryId",
     element: <ProductsPage />,
   },

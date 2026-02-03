@@ -33,6 +33,8 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
     const result = await dispatch(login({ email, password })).unwrap();
     const token = result.accessToken;
 
+    localStorage.setItem('token', token);
+    
     const decoded: TokenPayload = jwtDecode(token);
     
     // Token'dan email al, username olarak kaydet

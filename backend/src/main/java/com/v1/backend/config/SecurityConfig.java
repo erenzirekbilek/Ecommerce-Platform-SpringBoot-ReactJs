@@ -40,6 +40,9 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
+                        // 📊 Monitoring - Prometheus Actuator (Buraya Ekle)
+                        .requestMatchers("/actuator/**").permitAll()
+
                         // 🔓 Public Auth endpoints
                         .requestMatchers(
                                 "/api/auth/login",
@@ -60,7 +63,8 @@ public class SecurityConfig {
 
                         // 🔐 CART - Requires authentication
                         .requestMatchers(
-                                "/api/v1/cart/**"
+                                "/api/v1/cart/**",
+                                        "/api/v1/orders/**"
                         ).authenticated()
 
                         // 🔐 Everything else requires authentication

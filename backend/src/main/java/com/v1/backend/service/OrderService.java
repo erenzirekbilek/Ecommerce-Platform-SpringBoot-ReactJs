@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,11 +156,17 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
 
-        if (!order.getUser().getId().equals(userId) && !isAdmin(userId)) {
+        if (!order.getUser().getId().equals(userId) && !isAdmin()) {
             throw new IllegalArgumentException("Bu siparişe erişim yetkiniz yok");
         }
 
         return OrderResponse.fromEntity(order);
+    }
+
+    @Transactional(readOnly = true)
+    public Order getOrderEntity(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
     }
 
     @Transactional(readOnly = true)
@@ -176,7 +183,7 @@ public class OrderService {
         Order order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderNumber));
 
-        if (!order.getUser().getId().equals(userId) && !isAdmin(userId)) {
+        if (!order.getUser().getId().equals(userId) && !isAdmin()) {
             throw new IllegalArgumentException("Bu siparişe erişim yetkiniz yok");
         }
 
@@ -188,7 +195,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
 
-        if (!isAdmin(userId)) {
+        if (!isAdmin()) {
             throw new IllegalArgumentException("Sadece admin bu işlemi yapabilir");
         }
 
@@ -204,7 +211,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
 
-        if (!isAdmin(userId) && !order.getUser().getId().equals(userId)) {
+        if (!isAdmin() && !order.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("Bu işlemi yapma yetkiniz yok");
         }
 
@@ -223,7 +230,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
 
-        if (!isAdmin(userId)) {
+        if (!isAdmin()) {
             throw new IllegalArgumentException("Sadece admin bu işlemi yapabilir");
         }
 
@@ -240,7 +247,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
 
-        if (!isAdmin(userId)) {
+        if (!isAdmin()) {
             throw new IllegalArgumentException("Sadece admin bu işlemi yapabilir");
         }
 
@@ -256,7 +263,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sipariş bulunamadı: " + orderId));
 
-        if (!order.getUser().getId().equals(userId) && !isAdmin(userId)) {
+        if (!order.getUser().getId().equals(userId) && !isAdmin()) {
             throw new IllegalArgumentException("Bu işlemi yapma yetkiniz yok");
         }
 
@@ -267,9 +274,9 @@ public class OrderService {
         return OrderResponse.fromEntity(updatedOrder);
     }
 
-    private boolean isAdmin(Long userId) {
-        return userRepository.findById(userId)
-                .map(user -> user.getRole().name().equals("ADMIN"))
-                .orElse(false);
+    private boolean isAdmin() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
 }

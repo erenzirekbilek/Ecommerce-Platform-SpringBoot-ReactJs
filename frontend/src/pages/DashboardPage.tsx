@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { JSX } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import heroProduct from '../assets/images/background-home-page.png';
@@ -29,7 +30,7 @@ interface Category {
  * - Ana ürünü veya kampanyayı vurgulamak
  * - Kullanıcıyı aksiyona yönlendirmek
  */
-const HeroSection = ({ backgroundImage }: { backgroundImage: string }) => (
+const HeroSection = ({ onViewProducts }: { onViewProducts: () => void }) => (
   <section 
     className="bg-cover bg-left bg-no-repeat py-32 px-6 relative"
     style={{
@@ -40,7 +41,7 @@ const HeroSection = ({ backgroundImage }: { backgroundImage: string }) => (
        * - Sol tarafta cyan gradient → metin okunurluğu
        * - Sağ taraf görsel → premium hissi
        */
-      backgroundImage: `linear-gradient(to left, rgba(34, 211, 238, 0.95) 0%, rgba(34, 211, 238, 0.7) 50%, rgba(255, 255, 255, 0) 100%), url(${backgroundImage})`,
+      backgroundImage: `linear-gradient(to left, rgba(34, 211, 238, 0.95) 0%, rgba(34, 211, 238, 0.7) 50%, rgba(255, 255, 255, 0) 100%), url(${heroProduct})`,
       backgroundPosition: 'center',
       backgroundSize: 'cover',
     }}
@@ -64,8 +65,11 @@ const HeroSection = ({ backgroundImage }: { backgroundImage: string }) => (
         </p>
 
         {/* CTA BUTTON */}
-        {/* UX: Kullanıcıyı ürün detayına yönlendir */}
-        <button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold transition flex items-center gap-2 w-fit">
+        {/* UX: Kullanıcıyı tüm ürünlere yönlendir */}
+        <button 
+          onClick={onViewProducts}
+          className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold transition flex items-center gap-2 w-fit"
+        >
           <span>Ürünü Gözden Geçir</span>
           <ChevronRight size={20} />
         </button>
@@ -114,7 +118,8 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
          * UI:
          * - Kategori kartları burada render edilecek
          */
-        setCategories(result.data);
+        const categoriesData = result.data || result.content || [];
+        setCategories(categoriesData);
         setError(null);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
@@ -215,6 +220,10 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
                     src={`${import.meta.env.VITE_BACKEND_URL}${cat.imageUrl}`} 
                     alt={cat.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      img.src = 'https://via.placeholder.com/400x300?text=' + cat.name;
+                    }}
                   />
                 </div>
 
@@ -228,7 +237,13 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
                   </p>
 
                   {/* CTA */}
-                  <button className="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3 rounded-lg font-semibold transition">
+                  <button 
+                    className="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3 rounded-lg font-semibold transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCategorySelect(cat.id, cat.name);
+                    }}
+                  >
                     Ürünleri Görüntüle
                   </button>
                 </div>
@@ -242,7 +257,7 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
               <button
                 onClick={handlePrev}
                 disabled={currentIndex === 0}
-                className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white border rounded-full p-3 shadow-lg disabled:opacity-50"
+                className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white border rounded-full p-3 shadow-lg disabled:opacity-50 hover:shadow-xl transition"
               >
                 <ChevronRight size={24} className="rotate-180" />
               </button>
@@ -250,7 +265,7 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
               <button
                 onClick={handleNext}
                 disabled={currentIndex + itemsPerPage >= categories.length}
-                className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white border rounded-full p-3 shadow-lg disabled:opacity-50"
+                className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white border rounded-full p-3 shadow-lg disabled:opacity-50 hover:shadow-xl transition"
               >
                 <ChevronRight size={24} />
               </button>
@@ -264,10 +279,10 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx * itemsPerPage)}
-              className={`w-3 h-3 rounded-full ${
+              className={`w-3 h-3 rounded-full transition ${
                 Math.floor(currentIndex / itemsPerPage) === idx
                   ? 'bg-cyan-500'
-                  : 'bg-gray-300'
+                  : 'bg-gray-300 hover:bg-gray-400'
               }`}
             />
           ))}
@@ -285,14 +300,22 @@ const CategoriesSection = ({ onCategorySelect }: { onCategorySelect: (categoryId
  * - Hero → Keşif → Sosyal kanıt → Kampanya
  */
 export default function DashboardPage(): JSX.Element {
+  const navigate = useNavigate();
+
+  const handleViewAllProducts = () => {
+    // Tüm ürünlere git - /products/:categoryId route'u için 'all' kullan
+    navigate('/products/all?name=Tüm Ürünler');
+  };
+
   const handleCategorySelect = (categoryId: number, categoryName: string) => {
     // UX: Kategoriye tıklayınca ürün listesine git
-    window.location.href = `/products/${categoryId}?name=${categoryName}`;
+    // Route: /products/:categoryId?name=CategoryName
+    navigate(`/products/${categoryId}?name=${encodeURIComponent(categoryName)}`);
   };
 
   return (
     <DashboardLayout>
-      <HeroSection backgroundImage={heroProduct} />
+      <HeroSection onViewProducts={handleViewAllProducts} />
       <CategoriesSection onCategorySelect={handleCategorySelect} />
     </DashboardLayout>
   );
