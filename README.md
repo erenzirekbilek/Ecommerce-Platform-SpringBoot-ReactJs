@@ -39,20 +39,33 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 ![Anasayfa-1](./project-images/Anasayfa-1.jpg)
 ---
 ![Anasayfa-2](./project-images/Anasayfa-2.jpg)
+---
 ![Anasayfa-3](./project-images/Anasayfa-3.jpg)
+---
 ![Signup](./project-images/Signup.jpg)
+---
 ![Login(./project-images/Login.jpg)
+---
 ![ChatBot](./project-images/ChatBot.jpg)
+---
 ![Products-Page](./project-images/Products-Page.jpg)
+---
 ![Products-Page-2](./project-images/Products-Page-2.jpg)
+---
 ![SearchPage](./project-images/SearchPage.jpg)
+---
 ![Sepet](./project-images/Sepet.jpg)
+---
 ![Ödeme Sayfası](./project-images/ÖdemeSayfası.jpg)
+---
 ![Ödeme Sonuç](./project-images/ÖdemeSonuç.jpg)
+---
 ![Sipariş Sayfası](./project-images/SiparişSayfası.jpg)
+---
 ![İndirilebilir Fatura](./project-images/İndirilebilirFatura.jpg)
+---
 ![Siparişler](./project-images/Siparişler.jpg)
-
+---
 
 ## Sistem Mimarisi - Saga Pattern
 
