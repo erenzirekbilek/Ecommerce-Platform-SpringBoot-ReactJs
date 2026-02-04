@@ -34,7 +34,10 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 ---
 
 ## Screenshots
+
+---
 ![Anasayfa-1](./project-images/Anasayfa-1.jpg)
+---
 ![Anasayfa-2](./project-images/Anasayfa-2.jpg)
 ![Anasayfa-3](./project-images/Anasayfa-3.jpg)
 ![Signup](./project-images/Signup.jpg)
