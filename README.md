@@ -9,18 +9,19 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 
 ### Backend (Microservice-Ready Monolith)
 
-- **Java 17 & Spring Boot :** Güçlü tip güvenliği ve Spring Security
-- **PostgreSQL :** Kompleks ilişkisel veriler
-- **Redis Caching :** Ürün ve sepet işlemleri
-- **Kafka Event Bus :** OrderCreatedEvent cascade flow
-- **Hibernate & JPA :** ORM kolaylığı
-- **Resilience4j :** Circuit Breaker, Retry, RateLimiter
-- **iText PDF :** Fatura generation
-- **Docker & Docker Compose :** Portable ortam
+- **☕Java 17 & Spring Boot :** Güçlü tip güvenliği ve Spring Security
+- **🐘PostgreSQL :** Kompleks ilişkisel veriler
+- **⚡Redis Caching :** Ürün ve sepet işlemleri
+- **📡Kafka Event Bus :** OrderCreatedEvent cascade flow
+- **🧬Hibernate & JPA :** ORM kolaylığı
+- **🛡️Resilience4j :** Circuit Breaker, Retry, RateLimiter
+- **🧾iText PDF :** Fatura generation
+- **🐳Docker & Docker Compose :** Portable ortam
 - **🧩 Bağımlılık Yönetimi :** Gevşek bağlılık (Loose coupling) için Spring Dependency Injection.
 - **🔐 JWT Destekli Koruma :** Stateless kimlik doğrulama ve Spring Security entegrasyonu.
 - **📦 Veri Transferi (DTO) :** Entity katmanını izole eden, sadece gerekli veriyi taşıyan DTO (Data Transfer Object) kullanımı.
 - **🔄 Veri Erişimi:** Hibernate & JPA ile optimize edilmiş ORM yönetimi.
+
 
 
 ### Frontend (Modern UI/UX)
@@ -90,8 +91,22 @@ Altyapının (PostgreSQL, Redis, Kafka) sorunsuz ayağa kalktığını doğrulam
 docker ps
 ```
 ![Docker Konteyner Durumu](./project-images/Docker.jpg)
---- 
+---
 **Açıklama:** Bu komut; paylaştığın görsellerde görülen zookeeper, redis, prometheus ve grafana servislerini arka planda (-d) başlatır.
+
+### 3. 📊 İzlenebilirlik ve Monitoring (Grafana & Prometheus) ### 
+Sistemin sağlığını, CPU kullanımını ve API performansını anlık olarak izlemek için Grafana ve Prometheus entegrasyonu yapılmıştır.
+Grafana UI: http://localhost:3000
+
+Kullanıcı: admin
+Şifre: admin (İlk girişte değiştirmeniz istenebilir)
+
+Not: API performans grafiklerini ve JVM metriklerini görsel olarak buradan takip edebilirsiniz.
+
+![Docker Grafana Entegrasyonu](./project-images/Grafana.jpg)
+
+
+
 
 **Services:**
 - **PostgreSQL:** localhost:5432
