@@ -44,7 +44,7 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 ---
 ![Signup](./project-images/Signup.jpg)
 ---
-![Login(./project-images/Login.jpg)
+![Login](./project-images/Login.jpg)
 ---
 ![ChatBot](./project-images/ChatBot.jpg)
 ---
