@@ -207,18 +207,10 @@ Product Controller API Listesi
 ├───pages
 └───services
 ```
-## Sipariş İş Akışı (Order Flow)
+## Sistem Diyagramı
 
-**1. User** → CheckoutPage (adres, telefon, ödeme yöntemi)
-**2. Backend** → Order oluştur (AWAITING_PAYMENT)
-**3. Mock Payment** → PAID (otomatik)
-**4. Status** → PAYMENT_CONFIRMED
-**5. Kafka Event** → OrderCreatedEvent yayınla
-**6. Frontend** → /order-confirmation/{orderId}
-**7. OrderConfirmationPage:**
-   - Teslimat numarası (kopyala butonu)
-   - Fatura PDF indirme butonu
-   - Real-time timeline (6 stage progress)
+![Docker Grafana Entegrasyonu](./project-images/Grafana.jpg)
+
 
 ---
 
