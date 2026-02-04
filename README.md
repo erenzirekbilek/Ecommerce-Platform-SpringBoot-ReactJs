@@ -209,7 +209,7 @@ Product Controller API Listesi
 ```
 ## Sistem Diyagramı
 
-![Docker Grafana Entegrasyonu](./project-images/Grafana.jpg)
+![Docker Grafana Entegrasyonu](./project-images/SistemDiyagramı.jpg)
 
 
 ---
