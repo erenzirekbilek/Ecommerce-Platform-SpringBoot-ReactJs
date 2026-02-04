@@ -1,6 +1,7 @@
 # TechHub - Scalable E-Commerce Ecosystem
 
-TechHub, yüksek trafikli senaryolar düşünülerek tasarlanmış; Java Spring Boot (Backend) ve React/TypeScript (Frontend) mimarisi üzerine kurulu modern bir e-ticaret platformudur. Saga Pattern ile dağıtık işlem yönetimi, Kafka ile event-driven architecture ve Resilience4j ile fault tolerance sağlar.
+TechHub, yüksek trafikli senaryolar düşünülerek tasarlanmış; Java Spring Boot (Backend) ve React/TypeScript (Frontend) mimarisi üzerine kurulu modern bir e-ticaret platformudur. Performans optimizasyonu için **Redis**, veri bütünlüğü için **PostgreSQL** ve Kafka, Redis, Zookeeper, Prometheus ve Grafana gibi altyapı bileşenlerinin izole, tutarlı ve kolay yönetilebilir şekilde çalıştırılması ve entegrasyonunun sağlanması amacıyla **Docker** kullanır.API dokümantasyonu ve test edilebilirlik için **Swagger (OpenAPI)** kullanılır
+asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin toplanması için Prometheus, görselleştirilmesi için **Grafana** entegre edilmiştir.
 
 ---
 
