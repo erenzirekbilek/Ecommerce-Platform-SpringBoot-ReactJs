@@ -105,7 +105,7 @@ Kullanıcı: admin
 
 Not: API performans grafiklerini ve JVM metriklerini görsel olarak buradan takip edebilirsiniz. Projenin sağlık durumunu izlemek için kullandığın Prometheus sisteminin "Target Health" (Hedef Sağlığı) ekranını gösteriyor. Kısacası, Prometheus'un Spring Boot uygulandan veri çekip çekemediğini buradan anlıyoruz.
 
-![Docker Grafana Entegrasyonu](./project-images/Target-Healthjpg)
+![Docker Grafana Entegrasyonu](./project-images/Target-Health.jpg)
 
 ![Docker Grafana Entegrasyonu](./project-images/Grafana.jpg)
 
