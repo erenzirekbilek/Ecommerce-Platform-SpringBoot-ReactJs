@@ -9,27 +9,32 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 
 ### Backend (Microservice-Ready Monolith)
 
-- Java 17 & Spring Boot: Güçlü tip güvenliği ve Spring Security
-- PostgreSQL: Kompleks ilişkisel veriler
-- Redis Caching: Ürün ve sepet işlemleri
-- Kafka Event Bus: OrderCreatedEvent cascade flow
-- Hibernate & JPA: ORM kolaylığı
-- Resilience4j: Circuit Breaker, Retry, RateLimiter
-- iText PDF: Fatura generation
-- Docker & Docker Compose: Portable ortam
+- **Java 17 & Spring Boot :** Güçlü tip güvenliği ve Spring Security
+- **PostgreSQL :** Kompleks ilişkisel veriler
+- **Redis Caching :** Ürün ve sepet işlemleri
+- **Kafka Event Bus :** OrderCreatedEvent cascade flow
+- **Hibernate & JPA :** ORM kolaylığı
+- **Resilience4j :** Circuit Breaker, Retry, RateLimiter
+- **iText PDF :** Fatura generation
+- **Docker & Docker Compose :** Portable ortam
+- **🧩 Bağımlılık Yönetimi :** Gevşek bağlılık (Loose coupling) için Spring Dependency Injection.
+- **🔐 JWT Destekli Koruma :** Stateless kimlik doğrulama ve Spring Security entegrasyonu.
+- **📦 Veri Transferi (DTO) :** Entity katmanını izole eden, sadece gerekli veriyi taşıyan DTO (Data Transfer Object) kullanımı.
+- **🔄 Veri Erişimi:** Hibernate & JPA ile optimize edilmiş ORM yönetimi.
+
 
 ### Frontend (Modern UI/UX)
 
-- React & TypeScript: Hatasız kodlama
-- Redux Toolkit: State Management
-- Tailwind CSS: Modern styling
-- Axios: Merkezi API yönetimi
+- React & TypeScript: Component’lerin props ve state yapıları netleşir, olası hatalar daha yazım aşamasında yakalanır, büyük ve ekipli projelerde kodun okunabilirliği ve sürdürülebilirliği artar; güçlü IDE desteği sayesinde geliştirme ve refactor süreçleri hızlanır, bu da React uygulamalarının daha güvenli, ölçeklenebilir ve uzun ömürlü olmasını sağlar.
+- Redux Toolkit: Redux Toolkit, state yönetimini daha az boilerplate kodla, daha okunabilir ve hataya daha az açık şekilde yapmak; immutable update, async işlemler ve best practice’leri hazır olarak sunarak Redux kullanımını basitleştirmek ve büyük ölçekli uygulamalarda sürdürülebilir bir yapı sağlamak için kullanıldı.
+- Tailwind CSS: Tailwind CSS, hazır utility sınıfları sayesinde hızlı ve tutarlı arayüz geliştirmek, özel CSS yazımını minimize etmek, responsive tasarımı kolaylaştırmak ve büyük projelerde stil karmaşasını önleyerek bakım maliyetini düşürmek için kullanıldı.
+- Axios:Axios, HTTP isteklerini merkezi ve yönetilebilir bir yapı üzerinden yapmak, interceptor’lar ile token, hata ve response yönetimini kolaylaştırmak ve async API iletişimini daha okunabilir ve güvenli hale getirmek için kullanıldı.
 
 ---
 
 ## Sistem Mimarisi - Saga Pattern
 
-Sipariş oluşturuldığında şu cascade flow gerçekleşir:
+Sipariş oluşturulduğunda şu cascade flow gerçekleşir:
 
 ```
 User Checkout
@@ -71,16 +76,27 @@ Hata durumunda CompensationService refund işlemi başlatır.
 - Node.js (v16+)
 - Docker Desktop
 
-### 2. Docker ile Altyapı Hazırlama
+### 2. Docker ile Altyapı Hazırlama ###
+Docker altyapısını ve projeyi terminal üzerinden adım adım ayağa kaldırmak için şu komutları sırasıyla uygulayabilirsin. Görsellerdeki Docker Desktop verilerine dayanarak, sistemin doğru çalışması için şu akışı izlemeliyiz:
 
+**1. Adım:** Docker Konteynerlarını Hazırlama ve Başlatma
+Terminali proje ana dizininde (TechHub klasörü) aç ve şu komutu çalıştır:
 ```bash
 docker-compose up -d
 ```
+**2. Adım:**
+Altyapının (PostgreSQL, Redis, Kafka) sorunsuz ayağa kalktığını doğrulamak için:
+```bash
+docker ps
+```
+![Docker Konteyner Durumu](./project-images/Docker.jpg)
+--- 
+**Açıklama:** Bu komut; paylaştığın görsellerde görülen zookeeper, redis, prometheus ve grafana servislerini arka planda (-d) başlatır.
 
-Services:
-- PostgreSQL: localhost:5432
-- Redis: localhost:6379
-- Kafka: localhost:9092
+**Services:**
+- **PostgreSQL:** localhost:5432
+- **Redis:** localhost:6379
+- **Kafka:** localhost:9092
 
 ### 3. Backend Çalıştırma
 
@@ -89,7 +105,7 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-API: http://localhost:8082
+**API:** http://localhost:8082
 
 ### 4. Frontend Çalıştırma
 
@@ -99,7 +115,7 @@ npm install
 npm run dev
 ```
 
-UI: http://localhost:5173
+**UI:** http://localhost:5173
 
 ---
 
@@ -116,48 +132,73 @@ GET    /api/v1/orders                     - Kullanıcı siparişleri
 PATCH  /api/v1/orders/{orderId}/ship      - Kargo gönder (Admin)
 PATCH  /api/v1/orders/{orderId}/deliver   - Teslim et (Admin)
 ```
-
+Product Controller API Listesi
 ---
 
 ## Proje Klasör Yapısı
-
+**Backend**
 ```
-TechHub/
-├── backend/
-│   ├── src/main/java/
-│   │   ├── controller/       - REST Controllers
-│   │   ├── service/          - OrderService, PaymentService
-│   │   ├── model/            - Order, Product entities
-│   │   ├── repository/       - JPA Repositories
-│   │   ├── event/            - Kafka Events
-│   │   ├── kafka/            - Kafka Producers/Consumers
-│   │   └── util/             - InvoicePdfGenerator
-│   └── resources/
-│       └── application.yml   - Spring Config
-│
-├── frontend/
-│   └── src/
-│       ├── components/       - UI Components
-│       ├── pages/            - Route Pages
-│       ├── features/         - Auth, Cart, Order
-│       ├── hooks/            - useOrder, useCart
-│       └── services/         - orderApi.ts
-│
-├── docker-compose.yml
-└── README.md
+├───main
+│   ├───java
+│   │   └───com
+│   │       └───v1
+│   │           └───backend
+│   │               ├───config
+│   │               ├───controller
+│   │               ├───dto
+│   │               │   ├───brand
+│   │               │   ├───cart
+│   │               │   ├───category
+│   │               │   ├───login
+│   │               │   ├───order
+│   │               │   └───signup
+│   │               ├───event
+│   │               ├───exception
+│   │               ├───kafka
+│   │               ├───model
+│   │               ├───repository
+│   │               ├───security
+│   │               ├───service
+│   │               ├───utils
+│   │               └───validation
+│   └───resources
+│       ├───static
+│       │   └───uploads
+│       │       ├───brands
+│       │       ├───categories
+│       │       └───products
+│       └───templates
+└───test
+    └───java
+        └───com
+            └───v1
+                └───backend
 ```
-
+**Frontend**
 ---
-
+```
+├───app
+├───assets
+│   └───images
+├───components
+│   └───layout
+├───features
+│   ├───auth
+│   ├───cart
+│   └───order
+├───hooks
+├───pages
+└───services
+```
 ## Sipariş İş Akışı (Order Flow)
 
-1. User → CheckoutPage (adres, telefon, ödeme yöntemi)
-2. Backend → Order oluştur (AWAITING_PAYMENT)
-3. Mock Payment → PAID (otomatik)
-4. Status → PAYMENT_CONFIRMED
-5. Kafka Event → OrderCreatedEvent yayınla
-6. Frontend → /order-confirmation/{orderId}
-7. OrderConfirmationPage:
+**1. User** → CheckoutPage (adres, telefon, ödeme yöntemi)
+**2. Backend** → Order oluştur (AWAITING_PAYMENT)
+**3. Mock Payment** → PAID (otomatik)
+**4. Status** → PAYMENT_CONFIRMED
+**5. Kafka Event** → OrderCreatedEvent yayınla
+**6. Frontend** → /order-confirmation/{orderId}
+**7. OrderConfirmationPage:**
    - Teslimat numarası (kopyala butonu)
    - Fatura PDF indirme butonu
    - Real-time timeline (6 stage progress)
@@ -167,25 +208,25 @@ TechHub/
 ## Fatura (Invoice) PDF İndirme
 
 ```
-GET /api/v1/orders/{orderId}/invoice
-Response: PDF file
-Filename: ORD-xxxxx-Fatura.pdf
+**GET /api/v1/orders/{orderId}/invoice**
+**Response:** PDF file
+**Filename:** ORD-xxxxx-Fatura.pdf
 ```
 
-PDF İçeriği:
-- Header: TechHub Logo
+**PDF İçeriği:** 
+- **Header:** TechHub Logo
 - Fatura No ve Tarihi
 - Müşteri Bilgileri
 - Ürün Listesi
 - Totals (Ara Toplam, Kargo, Vergi, Toplam)
-- Footer: Otomatik oluşturulmuş belge
+- **Footer: ** Otomatik oluşturulmuş belge
 
 ---
 
 ## Kafka Event Topics
 
 ```
-order-created                - OrderService → PaymentService
+order-created               - OrderService → PaymentService
 payment-success             - PaymentService → StockService
 payment-failed              - PaymentService → Compensation
 stock-reserved              - StockService → ShipmentService
