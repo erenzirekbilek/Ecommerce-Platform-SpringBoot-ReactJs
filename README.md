@@ -96,16 +96,18 @@ docker ps
 
 ### 3. 📊 İzlenebilirlik ve Monitoring (Grafana & Prometheus) ### 
 Sistemin sağlığını, CPU kullanımını ve API performansını anlık olarak izlemek için Grafana ve Prometheus entegrasyonu yapılmıştır.
+
+Grafana UI: http://localhost:9090/targets
 Grafana UI: http://localhost:3000
 
 Kullanıcı: admin
 Şifre: admin (İlk girişte değiştirmeniz istenebilir)
 
-Not: API performans grafiklerini ve JVM metriklerini görsel olarak buradan takip edebilirsiniz.
+Not: API performans grafiklerini ve JVM metriklerini görsel olarak buradan takip edebilirsiniz. Projenin sağlık durumunu izlemek için kullandığın Prometheus sisteminin "Target Health" (Hedef Sağlığı) ekranını gösteriyor. Kısacası, Prometheus'un Spring Boot uygulandan veri çekip çekemediğini buradan anlıyoruz.
+
+![Docker Grafana Entegrasyonu](./project-images/Target-Healthjpg)
 
 ![Docker Grafana Entegrasyonu](./project-images/Grafana.jpg)
-
-
 
 
 **Services:**
