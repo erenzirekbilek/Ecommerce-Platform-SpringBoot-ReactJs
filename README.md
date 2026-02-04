@@ -58,7 +58,7 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 ---
 ![Ödeme Sayfası](./project-images/ÖdemeSayfası.jpg)
 ---
-![Ödeme Sonuç](./project-images/ÖdemeSonuç.jpg)
+![Ödeme Sonuç](./project-images/Ödeme-Sonuç.jpg)
 ---
 ![Sipariş Sayfası](./project-images/SiparişSayfası.jpg)
 ---
