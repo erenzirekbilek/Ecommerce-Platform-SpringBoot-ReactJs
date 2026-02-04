@@ -330,4 +330,5 @@ docker exec techhub-kafka kafka-consumer-groups.sh \
 
 ## İletişim
 
-Email: erenzirekbilek@hotmail.com
+💡 Proje hakkında her türlü öneri ve geri bildiriminizi duymaktan memnuniyet duyarım.  
+**erenzirekbilek@hotmail.com**
