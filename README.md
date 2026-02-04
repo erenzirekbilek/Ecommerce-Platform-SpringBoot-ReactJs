@@ -26,10 +26,11 @@ asenkron ve event-driven mimari için **Apache Kafka**, sistem metriklerinin top
 
 ### Frontend (Modern UI/UX)
 
-- React & TypeScript: Component’lerin props ve state yapıları netleşir, olası hatalar daha yazım aşamasında yakalanır, büyük ve ekipli projelerde kodun okunabilirliği ve sürdürülebilirliği artar; güçlü IDE desteği sayesinde geliştirme ve refactor süreçleri hızlanır, bu da React uygulamalarının daha güvenli, ölçeklenebilir ve uzun ömürlü olmasını sağlar.
-- Redux Toolkit: Redux Toolkit, state yönetimini daha az boilerplate kodla, daha okunabilir ve hataya daha az açık şekilde yapmak; immutable update, async işlemler ve best practice’leri hazır olarak sunarak Redux kullanımını basitleştirmek ve büyük ölçekli uygulamalarda sürdürülebilir bir yapı sağlamak için kullanıldı.
-- Tailwind CSS: Tailwind CSS, hazır utility sınıfları sayesinde hızlı ve tutarlı arayüz geliştirmek, özel CSS yazımını minimize etmek, responsive tasarımı kolaylaştırmak ve büyük projelerde stil karmaşasını önleyerek bakım maliyetini düşürmek için kullanıldı.
-- Axios:Axios, HTTP isteklerini merkezi ve yönetilebilir bir yapı üzerinden yapmak, interceptor’lar ile token, hata ve response yönetimini kolaylaştırmak ve async API iletişimini daha okunabilir ve güvenli hale getirmek için kullanıldı.
+- **⚛️ React & TypeScript:** Component’lerin props ve state yapıları netleşir, olası hatalar daha yazım aşamasında yakalanır, büyük ve ekipli projelerde kodun okunabilirliği ve sürdürülebilirliği artar; güçlü IDE desteği sayesinde geliştirme ve refactor süreçleri hızlanır, bu da React uygulamalarının daha güvenli, ölçeklenebilir ve uzun ömürlü olmasını sağlar.
+- **🧠 Redux Toolkit:** Redux Toolkit, state yönetimini daha az boilerplate kodla, daha okunabilir ve hataya daha az açık şekilde yapmak; immutable update, async işlemler ve best practice’leri hazır olarak sunarak Redux kullanımını basitleştirmek ve büyük ölçekli uygulamalarda sürdürülebilir bir yapı sağlamak için kullanıldı.
+- **🎨 Tailwind CSS:** Tailwind CSS, hazır utility sınıfları sayesinde hızlı ve tutarlı arayüz geliştirmek, özel CSS yazımını minimize etmek, responsive tasarımı kolaylaştırmak ve büyük projelerde stil karmaşasını önleyerek bakım maliyetini düşürmek için kullanıldı.
+- **🔗 Axios:**Axios, HTTP isteklerini merkezi ve yönetilebilir bir yapı üzerinden yapmak, interceptor’lar ile token, hata ve response yönetimini kolaylaştırmak ve async API iletişimini daha okunabilir ve güvenli hale getirmek için kullanıldı.
+- **🤖 Rule-Based Chatbot (MVP):** Rule-Based Chatbot (MVP)
 
 ---
 
@@ -311,12 +312,20 @@ docker exec techhub-kafka kafka-consumer-groups.sh \
 
 ## Gelecek Roadmap
 
-- [ ] Elasticsearch: Ultra hızlı ürün araması
-- [ ] RabbitMQ: E-posta bildirimleri
-- [ ] Stripe/Iyzico: Gerçek ödeme gateway
-- [ ] WebSocket: Real-time tracking
-- [ ] Kubernetes: Orkestrasyon
+- [ ] **Elasticsearch**: Ultra hızlı ve ölçeklenebilir ürün arama altyapısı  
+- [ ] **RabbitMQ**: Sipariş, bildirim ve e-posta süreçleri için asenkron mesajlaşma  
+- [ ] **Stripe / Iyzico**: Gerçek ödeme gateway entegrasyonu  
+- [ ] **WebSocket**: Sipariş ve kargo süreçleri için real-time tracking  
+- [ ] **Kubernetes**: Servislerin ölçeklenmesi ve orkestrasyonu  
 
+- [ ] **Backend Destekli Chatbot**:  
+      Frontend-only rule-based yapıdan, backend tarafından yönetilen ve iş kurallarıyla entegre bir chatbot mimarisine geçiş  
+
+- [ ] **LLM (Large Language Model) Entegrasyonu**:  
+      Sipariş, ürün ve kullanıcı bağlamını (context) anlayabilen; gerektiğinde rule-based ve AI yanıtlarını hibrit şekilde üreten akıllı sohbet asistanı  
+
+- [ ] **Chatbot Microservice**:  
+      Chatbot bileşeninin bağımsız bir servis olarak ayrıştırılması ve event-driven mimari ile sistemle entegre edilmesi
 ---
 
 ## İletişim
